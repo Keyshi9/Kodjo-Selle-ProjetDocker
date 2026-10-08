@@ -1,0 +1,137 @@
+name: CI/CD Pipeline - Qualité, Tests & Déploiement
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # 1. Vérification de la Qualité du Code (Linting)
+  # ----------------------------------------------------------------------------
+  lint:
+    name: Analyse Statique & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      - name: Configuration de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation du Linter Flake8
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Exécution du Linter
+        run: |
+          # Arrête le build si erreurs de syntaxe ou variables non définies
+          flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Avertissements sur le style PEP8
+          flake8 backend --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  # ----------------------------------------------------------------------------
+  # 2. Build Docker, Intégration Continue & Tests Automatisés
+  # ----------------------------------------------------------------------------
+  test:
+    name: Build & Tests Automatisés Docker Compose
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      - name: Validation de la configuration Docker Compose
+        run: |
+          cp .env.example .env
+          docker compose config
+
+      - name: Démarrage de l'infrastructure multi-conteneurs
+        run: |
+          docker compose up -d --build
+
+      - name: Attente de la disponibilité des services (Healthcheck)
+        run: |
+          timeout 45s bash -c 'until curl -sf http://localhost:8080/api/health; do echo "En attente..."; sleep 2; done'
+
+      - name: Exécution des tests d'intégration API
+        run: |
+          python -m pip install requests
+          python tests/test_api.py
+
+      - name: Test automatisé de persistance du volume PostgreSQL
+        run: |
+          echo "Insertion d'un enregistrement test..."
+          curl -f -X POST http://localhost:8080/api/assets \
+            -H "Content-Type: application/json" \
+            -d '{"name":"srv-ci-persistence-check","category":"Test","ip_address":"10.254.0.1","status":"ONLINE","location":"CI Runner"}'
+          
+          echo "Redémarrage du conteneur database..."
+          docker compose restart database
+          sleep 6
+
+          echo "Vérification de la persistance des données..."
+          curl -f http://localhost:8080/api/assets | grep "srv-ci-persistence-check"
+          echo "✅ Persistance validée avec succès !"
+
+      - name: Affichage des logs en cas d'échec
+        if: failure()
+        run: |
+          docker compose logs
+
+      - name: Arrêt propre des conteneurs
+        run: |
+          docker compose down -v
+
+  # ----------------------------------------------------------------------------
+  # 3. Publication de l'Image (Conformité Sujet 10 & GHCR / Docker Hub)
+  # ----------------------------------------------------------------------------
+  publish:
+    name: Publication de l'Image Conteneur
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Récupération du dépôt
+        uses: actions/checkout@v4
+
+      - name: Connexion au registre GitHub Packages (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build et Push sur GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/i347-flask-inventory-api:latest
+            ghcr.io/${{ github.repository_owner }}/i347-flask-inventory-api:1.0.0
+
+      - name: Connexion conditionnelle à Docker Hub (si secrets configurés)
+        if: env.DOCKERHUB_TOKEN != ''
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build et Push sur Docker Hub (si secrets configurés)
+        if: env.DOCKERHUB_TOKEN != ''
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/i347-flask-inventory-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/i347-flask-inventory-api:1.0.0
