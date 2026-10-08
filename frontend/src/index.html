@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudAsset Manager | Projet Docker I347</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="container header-content">
+            <div class="brand">
+                <div class="logo-icon">🐳</div>
+                <div>
+                    <h1>CloudAsset Manager</h1>
+                    <p class="subtitle">Virtualisation & Microservices Conteneurisés — Module I347 (CPNV)</p>
+                </div>
+            </div>
+            <div class="authors-badge">
+                <span>Trinôme / Binôme : <strong>Kodjo & Selle</strong></span>
+                <span class="project-tag">Sujet 10 : Publication Docker Hub</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Bannière d'état des 3 services interconnectés -->
+        <section class="services-banner">
+            <div class="service-card" id="card-frontend">
+                <div class="service-indicator online"></div>
+                <div class="service-details">
+                    <h3>Frontend & Proxy</h3>
+                    <p>Nginx Alpine (Reverse Proxy)</p>
+                    <span class="badge">Port Public : 8080</span>
+                </div>
+            </div>
+            <div class="service-card" id="card-backend">
+                <div class="service-indicator loading" id="backend-status-dot"></div>
+                <div class="service-details">
+                    <h3>Backend API</h3>
+                    <p>Python Flask (Multi-Stage non-root)</p>
+                    <span class="badge" id="backend-version">v1.0.0</span>
+                </div>
+            </div>
+            <div class="service-card" id="card-database">
+                <div class="service-indicator loading" id="db-status-dot"></div>
+                <div class="service-details">
+                    <h3>Base de Données</h3>
+                    <p>PostgreSQL 16 (Volume persistant)</p>
+                    <span class="badge network-badge">Réseau interne isolé</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistiques rapides -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Équipements</span>
+                <span class="stat-value" id="stat-total">-</span>
+            </div>
+            <div class="stat-card online-card">
+                <span class="stat-label">En Ligne (Online)</span>
+                <span class="stat-value" id="stat-online">-</span>
+            </div>
+            <div class="stat-card maint-card">
+                <span class="stat-label">Maintenance</span>
+                <span class="stat-value" id="stat-maint">-</span>
+            </div>
+            <div class="stat-card offline-card">
+                <span class="stat-label">Hors Ligne (Offline)</span>
+                <span class="stat-value" id="stat-offline">-</span>
+            </div>
+        </section>
+
+        <!-- Grille principale : Formulaire & Tableau -->
+        <div class="main-layout">
+            <!-- Formulaire d'ajout -->
+            <section class="card form-card">
+                <h2>➕ Ajouter un équipement</h2>
+                <form id="add-asset-form">
+                    <div class="form-group">
+                        <label for="asset-name">Nom de l'actif / serveur *</label>
+                        <input type="text" id="asset-name" placeholder="ex: srv-web-nginx02" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="asset-category">Catégorie *</label>
+                        <select id="asset-category" required>
+                            <option value="Serveur Physique">Serveur Physique</option>
+                            <option value="Machine Virtuelle">Machine Virtuelle</option>
+                            <option value="Conteneur Docker" selected>Conteneur Docker</option>
+                            <option value="Base de données">Base de données</option>
+                            <option value="Switch / Réseau">Switch / Réseau</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="asset-ip">Adresse IP *</label>
+                        <input type="text" id="asset-ip" placeholder="ex: 192.168.1.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="asset-status">Statut</label>
+                        <select id="asset-status">
+                            <option value="ONLINE">ONLINE (Actif)</option>
+                            <option value="MAINTENANCE">MAINTENANCE</option>
+                            <option value="OFFLINE">OFFLINE (Éteint)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="asset-location">Emplacement</label>
+                        <input type="text" id="asset-location" value="Datacenter Lausanne">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btn-submit">
+                        Enregistrer dans PostgreSQL
+                    </button>
+                    <p class="form-feedback" id="form-feedback"></p>
+                </form>
+            </section>
+
+            <!-- Inventaire en direct -->
+            <section class="card table-card">
+                <div class="card-header-flex">
+                    <h2>📋 Inventaire du parc en direct</h2>
+                    <button class="btn btn-secondary btn-sm" id="btn-refresh">🔄 Rafraîchir</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Catégorie</th>
+                                <th>Adresse IP</th>
+                                <th>Statut</th>
+                                <th>Emplacement</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assets-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center loading-cell">Chargement des données...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Section Documentation & Conformité Projet -->
+        <section class="card info-card">
+            <h2>🛡️ Informations Système & Conformité Sujet 10</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h4>📦 Image Publiée Docker Hub</h4>
+                    <p><code id="dockerhub-img">keyshi9/i347-flask-inventory-api:1.0.0</code></p>
+                    <small>Commande de test : <code>docker pull keyshi9/i347-flask-inventory-api:1.0.0</code></small>
+                </div>
+                <div class="info-item">
+                    <h4>🔒 Sécurité & Droits</h4>
+                    <p>Conteneur exécuté avec l'utilisateur non-root <code>appuser (UID 10001)</code>. Secrets isolés dans <code>.env</code>.</p>
+                </div>
+                <div class="info-item">
+                    <h4>💾 Persistance des Données</h4>
+                    <p>Volume nommé Docker <code>postgres_data</code> monté sur <code>/var/lib/postgresql/data</code>.</p>
+                </div>
+                <div class="info-item">
+                    <h4>🌐 Réseaux Docker Dédiés</h4>
+                    <p><code>frontend-net</code> (externe) et <code>backend-net</code> (interne, BDD isolée).</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container footer-content">
+            <p>© 2026 CPNV — FPA 2ème année — Module I347 : Virtualisation d'une application avec conteneurs.</p>
+            <p>Projet validé par Kodjo & Selle — Enseignant : YKE (GitHub : koyaob)</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
