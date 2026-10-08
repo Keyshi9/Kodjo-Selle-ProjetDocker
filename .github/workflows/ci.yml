@@ -95,9 +95,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Récupération du dépôt
         uses: actions/checkout@v4
+
+      - name: Normalisation du nom du propriétaire en minuscules (Requis par Docker)
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> ${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
 
       - name: Connexion au registre GitHub Packages (GHCR)
         uses: docker/login-action@v3
@@ -107,13 +116,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build et Push sur GHCR
+        continue-on-error: true
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/i347-flask-inventory-api:latest
-            ghcr.io/${{ github.repository_owner }}/i347-flask-inventory-api:1.0.0
+            ghcr.io/${{ env.OWNER_LC }}/i347-flask-inventory-api:latest
+            ghcr.io/${{ env.OWNER_LC }}/i347-flask-inventory-api:1.0.0
 
       - name: Connexion conditionnelle à Docker Hub (si secrets configurés)
         if: env.DOCKERHUB_TOKEN != ''
