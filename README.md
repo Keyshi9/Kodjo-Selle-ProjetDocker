@@ -14,7 +14,7 @@
 * **Formation** : FPA 2ème année (SI-CA2a)
 * **Module** : **I347 — Utiliser un service avec des conteneurs**
 * **Projet** : Virtualisation d’une application multi-services avec Docker & Docker Compose
-* **Binôme / Trinôme** : **Kodjo & Selle**
+* **Binôme** : **Kodjo & Selle**
 * **Enseignant** : YKE (GitHub : [`koyaob`](https://github.com/koyaob))
 * **Sujet attribué** : **Sujet n°10 — Publication d'une image sur Docker Hub**
 * **Image Docker Hub officielle** : [`keyshi9/i347-flask-inventory-api:1.0.0`](https://hub.docker.com/r/keyshi9/i347-flask-inventory-api)
