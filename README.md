@@ -1,4 +1,4 @@
-# 🐳 CloudAsset Manager — Virtualisation d'une Application avec Conteneurs
+# CloudAsset Manager — Virtualisation d'une Application avec Conteneurs
 
 [![CI/CD Pipeline](https://github.com/Keyshi9/Kodjo-Selle-ProjetDocker/actions/workflows/ci.yml/badge.svg)](https://github.com/Keyshi9/Kodjo-Selle-ProjetDocker/actions)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
@@ -9,7 +9,7 @@
 
 ---
 
-## 📌 Informations Générales
+## Informations Générales
 * **Établissement** : Centre professionnel du Nord vaudois (CPNV)
 * **Formation** : FPA 2ème année (SI-CA2a)
 * **Module** : **I347 — Utiliser un service avec des conteneurs**
@@ -21,7 +21,7 @@
 
 ---
 
-## 1. 📖 Introduction & But du Projet
+## 1. Introduction & But du Projet
 
 Dans le cadre d'un besoin de modernisation d'infrastructure applicative, ce projet conçoit, conteneurise et déploie une solution complète de **gestion d'inventaire d'équipements informatiques et conteneurs (CloudAsset Manager)**.
 
@@ -35,7 +35,7 @@ L'objectif principal est de fournir une architecture micro-services robuste, sé
 
 ---
 
-## 2. 🏛️ Architecture Technique & Schémas
+## 2. Architecture Technique & Schémas
 
 L'application est composée de trois conteneurs principaux fonctionnant de concert, avec un quatrième conteneur optionnel d'administration :
 
@@ -111,7 +111,7 @@ graph TD
 
 ---
 
-## 3. 🚀 Instructions de Lancement
+## 3. Instructions de Lancement
 
 ### Prérequis
 * [Docker Desktop](https://www.docker.com/products/docker-desktop/) installé et démarré (avec Docker Compose v2+).
@@ -132,10 +132,10 @@ docker compose up -d --build
 ```
 
 ### Accès aux applications
-* 🌐 **Interface Web Principale (Frontend)** : [http://localhost:8080](http://localhost:8080)
-* 🩺 **Healthcheck de l'API** : [http://localhost:8080/api/health](http://localhost:8080/api/health)
-* ℹ️ **Métadonnées de l'architecture** : [http://localhost:8080/api/info](http://localhost:8080/api/info)
-* 📊 **Statistiques du parc** : [http://localhost:8080/api/stats](http://localhost:8080/api/stats)
+* **Interface Web Principale (Frontend)** : [http://localhost:8080](http://localhost:8080)
+* **Healthcheck de l'API** : [http://localhost:8080/api/health](http://localhost:8080/api/health)
+* **Métadonnées de l'architecture** : [http://localhost:8080/api/info](http://localhost:8080/api/info)
+* **Statistiques du parc** : [http://localhost:8080/api/stats](http://localhost:8080/api/stats)
 
 ### Démarrage avec l'outil d'administration (Profil Démonstration)
 Pour démarrer également **Adminer** pour la soutenance orale :
@@ -155,7 +155,7 @@ docker compose down -v
 
 ---
 
-## 4. 🔒 Sécurité, Réseau et Persistance
+## 4. Sécurité, Réseau et Persistance
 
 ### A. Sécurité de l'image (Dockerfile Multi-Stage & Droits Réduits)
 Le `backend/Dockerfile` a été optimisé selon les règles de l'art :
@@ -184,7 +184,7 @@ Deux réseaux Docker personnalisés de type `bridge` sont mis en place :
 
 ---
 
-## 5. 📦 Publication sur Docker Hub (Conformité Sujet n°10)
+## 5. Publication sur Docker Hub (Conformité Sujet n°10)
 
 Le sujet n°10 impose la construction, le taguage, la publication et la vérification du téléchargement de l'image sur Docker Hub.
 
@@ -222,7 +222,7 @@ docker stop test-pull && docker rm test-pull
 
 ---
 
-## 6. 🧪 Tests Automatisés & Résultats
+## 6. Tests Automatisés & Résultats
 
 ### Exécution locale des tests
 Des scripts de tests automatisés vérifient le linter, le démarrage, les endpoints CRUD de l'API et la persistance des volumes :
@@ -256,7 +256,7 @@ Des scripts de tests automatisés vérifient le linter, le démarrage, les endpo
 
 ---
 
-## 7. ⚠️ Problèmes Rencontrés & Solutions
+## 7. Problèmes Rencontrés & Solutions
 
 | Problème rencontré | Cause identifiée | Solution mise en place |
 | :--- | :--- | :--- |
@@ -267,29 +267,10 @@ Des scripts de tests automatisés vérifient le linter, le démarrage, les endpo
 
 ---
 
-## 8. 💡 Pistes d'Amélioration
+## 8. Pistes d'Amélioration
 
 1. **Gestion HTTPS / TLS** : Intégration de certificats Let's Encrypt avec renouvellement automatisé via Certbot dans Nginx.
 2. **Orchestration Kubernetes** : Traduction des manifestes Docker Compose en charts Helm et déploiement sur un cluster k3s / Minikube.
 3. **Sécurité avancée des conteneurs** : Analyse automatisée des vulnérabilités des images avec Trivy dans la CI/CD.
 4. **Centralisation des logs** : Export des logs Nginx et Flask vers une stack Grafana Loki ou ElasticSearch.
 
----
-
-## 9. 🎤 Fiche de Soutenance Finale (Guide 15 Minutes)
-
-Pour la présentation orale devant l'enseignant, voici le plan recommandé :
-
-* **Minutes 0 - 4 : Présentation du Concept & Choix Techniques (4 min)**
-  * Présentation des rôles du binôme (Kodjo & Selle) et du sujet n°10 (Publication Docker Hub).
-  * Explication des 3 microservices (Frontend Nginx, Backend Flask, DB PostgreSQL).
-  * Justification du multi-stage build, de la réduction de taille de l'image et du compte non-root.
-* **Minutes 4 - 9 : Démonstration Réelle en Direct (5 min)**
-  * Lancement avec `docker compose up -d`.
-  * Démonstration de l'interface web sur `http://localhost:8080` : ajout et suppression d'un équipement.
-  * Démonstration de la persistance : redémarrage du conteneur BDD en live avec maintien des données.
-  * Démonstration du Sujet 10 : `docker pull keyshi9/i347-flask-inventory-api:1.0.0` et présentation de la page Docker Hub.
-* **Minutes 9 - 15 : Questions de l'Enseignant (6 min)**
-  * *Question Réseau* : « Comment le backend communique-t-il avec la base ? » -> Par le réseau bridge privé `backend-net`, en utilisant le nom DNS du service `database:5432`. La base n'a aucun port ouvert vers l'extérieur.
-  * *Question Sécurité* : « Comment garantissez-vous que le conteneur ne tourne pas en root ? » -> Démonstration de la directive `USER appuser (UID 10001)` dans le Dockerfile, et vérification par `docker compose exec backend whoami`.
-  * *Question Volume* : « Que se passe-t-il si on supprime le conteneur BDD ? » -> Le volume Docker nommé `i347_postgres_data` reste intact sur l'hôte, et un nouveau conteneur se reconnectera automatiquement aux mêmes données.
